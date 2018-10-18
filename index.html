@@ -1,0 +1,78 @@
+<!DOCTYPE html>
+<head>
+<meta charset=utf-8 />
+<title>A simple map</title>
+<link rel="stylesheet" type="text/css" href="css/main.css">
+<script src='https://api.mapbox.com/mapbox-gl-js/v0.50.0/mapbox-gl.js'></script>
+<link href='https://api.mapbox.com/mapbox-gl-js/v0.50.0/mapbox-gl.css' rel='stylesheet'>
+</head>
+
+<body>
+
+<div id='map'>
+<!-- <div class='map-overlay' id='features'><h2>US population density</h2><div id='pd'><p>Hover over a state!</p></div></div>
+<div class='map-overlay' id='legend'></div> -->
+</div>
+<pre id='features'></pre>
+<script>
+
+mapboxgl.accessToken = 'pk.eyJ1IjoicGFzcXVpZXJqYiIsImEiOiJjaml1NjRkcmsxbnB2M3Btc3lzc2UwMmk4In0.WXzslqx4xB4fWBeBRU0AGw';
+
+var map = new mapboxgl.Map({
+  container: 'map', // container id
+  style: 'mapbox://styles/pasquierjb/cjneefajm2hx92rq8opwbh5oh' // replace this with your style URL
+});
+
+  // map.on('load', function() {
+  //   var layers = ['0-10', '10-20', '20-50', '50-100', '100-200', '200-500', '500-1000', '1000+'];
+  //   var colors = ['#FFEDA0', '#FED976', '#FEB24C', '#FD8D3C', '#FC4E2A', '#E31A1C', '#BD0026', '#800026'];
+  //
+  //   for (i = 0; i < layers.length; i++) {
+  //     var layer = layers[i];
+  //     var color = colors[i];
+  //     var item = document.createElement('div');
+  //     var key = document.createElement('span');
+  //     key.className = 'legend-key';
+  //     key.style.backgroundColor = color;
+  //
+  //     var value = document.createElement('span');
+  //     value.innerHTML = layer;
+  //     item.appendChild(key);
+  //     item.appendChild(value);
+  //     legend.appendChild(item);
+  //   }
+
+    map.on('mousemove', function (e) {
+    var features = map.queryRenderedFeatures(e.point, {layers: ['msna-data']});
+
+    // document.getElementById('features').innerHTML = JSON.stringify(name, null, 2);
+
+
+  if (features.length > 0) {
+    console.info(features[0]);
+    var name = features[0].properties.Mantika;
+    var food_insecure = (features[0].properties.Food_Insecure * 100).toFixed(0)+"%" ;
+    document.getElementById('features').innerHTML = '<h2><strong>' + name + '</strong></h2><p><strong><em>' + food_insecure + '</strong> % Food Insecure</em></p>';
+  } else {
+    document.getElementById('features').innerHTML = '<h2><p> Hover over a Mantika!</p></h2>';
+  }
+
+});
+
+  //   map.on('mousemove', function(e) {
+  // var governorates = map.queryRenderedFeatures(e.point, {
+  //   layers: ['msnda-data']
+  // });
+
+
+
+//   if (governorates.length > 0) {
+//     document.getElementById('pd').innerHTML = '<h3><strong>' + governorates[0].properties.Mantika + '</strong></h3><p><strong><em>' + governorates[0].properties.Food_Insecure + '</strong> people per square mile</em></p>';
+//   } else {
+//     document.getElementById('pd').innerHTML = '<p>Hover over a state!</p>';
+//   }
+// });
+
+</script>
+</body>
+</html>
