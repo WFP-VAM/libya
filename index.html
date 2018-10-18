@@ -1,78 +1,62 @@
 <!DOCTYPE html>
+<html>
 <head>
-<meta charset=utf-8 />
-<title>A simple map</title>
-<link rel="stylesheet" type="text/css" href="css/main.css">
-<script src='https://api.mapbox.com/mapbox-gl-js/v0.50.0/mapbox-gl.js'></script>
-<link href='https://api.mapbox.com/mapbox-gl-js/v0.50.0/mapbox-gl.css' rel='stylesheet'>
+  <meta charset='utf-8' />
+  <title>Food Security Map of Libya</title>
+  <link rel="stylesheet" type="text/css" href="css/main.css">
+  <meta name='viewport' content='initial-scale=1,maximum-scale=1,user-scalable=no' />
+  <script src='https://api.tiles.mapbox.com/mapbox-gl-js/v0.49.0/mapbox-gl.js'></script>
+  <link href='https://api.tiles.mapbox.com/mapbox-gl-js/v0.49.0/mapbox-gl.css' rel='stylesheet' />
+  <style>
+    body { margin:0; padding:0; }
+    #map { position:absolute; top:0; bottom:0; width:100%; }
+  </style>
 </head>
-
 <body>
 
-<div id='map'>
-<!-- <div class='map-overlay' id='features'><h2>US population density</h2><div id='pd'><p>Hover over a state!</p></div></div>
-<div class='map-overlay' id='legend'></div> -->
-</div>
+<div id='map'></div>
 <pre id='features'></pre>
+
 <script>
-
 mapboxgl.accessToken = 'pk.eyJ1IjoicGFzcXVpZXJqYiIsImEiOiJjaml1NjRkcmsxbnB2M3Btc3lzc2UwMmk4In0.WXzslqx4xB4fWBeBRU0AGw';
-
-var map = new mapboxgl.Map({
-  container: 'map', // container id
-  style: 'mapbox://styles/pasquierjb/cjneefajm2hx92rq8opwbh5oh' // replace this with your style URL
+const map = new mapboxgl.Map({
+  container: 'map',
+  style: 'mapbox://styles/pasquierjb/cjneqxx1g1h222spouyhjdlmn',
+  center: [18.661,27.356],
+  zoom: 5.0
 });
 
-  // map.on('load', function() {
-  //   var layers = ['0-10', '10-20', '20-50', '50-100', '100-200', '200-500', '500-1000', '1000+'];
-  //   var colors = ['#FFEDA0', '#FED976', '#FEB24C', '#FD8D3C', '#FC4E2A', '#E31A1C', '#BD0026', '#800026'];
-  //
-  //   for (i = 0; i < layers.length; i++) {
-  //     var layer = layers[i];
-  //     var color = colors[i];
-  //     var item = document.createElement('div');
-  //     var key = document.createElement('span');
-  //     key.className = 'legend-key';
-  //     key.style.backgroundColor = color;
-  //
-  //     var value = document.createElement('span');
-  //     value.innerHTML = layer;
-  //     item.appendChild(key);
-  //     item.appendChild(value);
-  //     legend.appendChild(item);
-  //   }
-
-    map.on('mousemove', function (e) {
-    var features = map.queryRenderedFeatures(e.point, {layers: ['msna-data']});
-
-    // document.getElementById('features').innerHTML = JSON.stringify(name, null, 2);
-
-
-  if (features.length > 0) {
-    console.info(features[0]);
-    var name = features[0].properties.Mantika;
-    var food_insecure = (features[0].properties.Food_Insecure * 100).toFixed(0)+"%" ;
-    document.getElementById('features').innerHTML = '<h2><strong>' + name + '</strong></h2><p><strong><em>' + food_insecure + '</strong> % Food Insecure</em></p>';
-  } else {
-    document.getElementById('features').innerHTML = '<h2><p> Hover over a Mantika!</p></h2>';
-  }
+map.on('mousemove', function (e) {
+var features = map.queryRenderedFeatures(e.point, {layers: ['msna-libya']});
+if (features.length > 0) {
+var name = features[0].properties.Mantika;
+var food_insecure = (features[0].properties.Food_Insecure * 100).toFixed(0)+"%" ;
+var food_insecure_mar = (features[0].properties.Marginally_food_secure * 100).toFixed(0)+"%" ;
+var food_insecure_sev = (features[0].properties.Severely_food_insecure * 100).toFixed(0)+"%" ;
+var borderline_fcs = (features[0].properties.FCG_Moderately_food_insecure * 100).toFixed(0)+"%" ;
+var poor_fcs = (features[0].properties.FCG_Severely_food_insecure * 100).toFixed(0)+"%" ;
+var bad_coping = ((features[0].properties.LCOP_Moderately_food_insecure + features[0].properties.LCOP_Severely_food_insecure) * 100).toFixed(0)+"%" ;
+var bad_share_foodexp = ((features[0].properties.SEF_Marginally_food_secure + features[0].properties.SEF_Moderately_food_insecure) * 100).toFixed(0)+"%" ;
+document.getElementById('features').innerHTML = '<h2><strong>' +
+name + '</h2></strong>' +
+'<br/>' +
+'<p><strong>'+ food_insecure + ' are Food Insecure</strong></p>' +
+'<br/>' +
+'<p>'+ food_insecure_mar + ' are Marginally Food Insecure</p>' +
+'<p>'+ food_insecure_sev + ' are Severly Food Insecure</p>' +
+'<br/>' +
+'<p>'+ poor_fcs + ' have Poor Food Consumption</p>' +
+'<p>'+ borderline_fcs + ' have Borderline Food Consumption</p>' +
+'<br/>' +
+'<p>'+ bad_coping + ' use Stress or Emergency Coping Strategies</p>' +
+'<p>'+ bad_share_foodexp + ' spend More than 65% of Expenses on Food</p>';
+} else {
+document.getElementById('features').innerHTML = '<h2><p> Hover your mouse <br/> over a Mantika <br/> to get the Food Sec. data</p></h2>';
+}
 
 });
-
-  //   map.on('mousemove', function(e) {
-  // var governorates = map.queryRenderedFeatures(e.point, {
-  //   layers: ['msnda-data']
-  // });
-
-
-
-//   if (governorates.length > 0) {
-//     document.getElementById('pd').innerHTML = '<h3><strong>' + governorates[0].properties.Mantika + '</strong></h3><p><strong><em>' + governorates[0].properties.Food_Insecure + '</strong> people per square mile</em></p>';
-//   } else {
-//     document.getElementById('pd').innerHTML = '<p>Hover over a state!</p>';
-//   }
-// });
 
 </script>
+
 </body>
 </html>
