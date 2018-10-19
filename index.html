@@ -31,7 +31,7 @@ var features = map.queryRenderedFeatures(e.point, {layers: ['msna-libya']});
 if (features.length > 0) {
 var name = features[0].properties.Mantika;
 var food_insecure = (features[0].properties.Food_Insecure * 100).toFixed(0)+"%" ;
-var food_insecure_mar = (features[0].properties.Marginally_food_secure * 100).toFixed(0)+"%" ;
+var food_insecure_mar = (features[0].properties.Moderately_food_insecure * 100).toFixed(0)+"%" ;
 var food_insecure_sev = (features[0].properties.Severely_food_insecure * 100).toFixed(0)+"%" ;
 var borderline_fcs = (features[0].properties.FCG_Moderately_food_insecure * 100).toFixed(0)+"%" ;
 var poor_fcs = (features[0].properties.FCG_Severely_food_insecure * 100).toFixed(0)+"%" ;
