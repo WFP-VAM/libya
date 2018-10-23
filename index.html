@@ -40,9 +40,11 @@
 
     var map = new mapboxgl.Map({
       container: 'map',
-      style: 'mapbox://styles/mapbox/light-v9',
+      style: 'mapbox://styles/pasquierjb/cjl2dra7b8re72slkbn8qefmj',
       center: [18.661, 27.356],
-      zoom: 4.5
+      zoom: 4.5,
+      maxZoom: 8,
+      minZoom: 4
     });
 
     var clicked = "All";
@@ -81,9 +83,9 @@
         "source-layer": "Mantika-169g1n",
         "paint": {
           'fill-color': '#EED322',
-          'fill-opacity': 0.85
+          'fill-opacity': 0.75
         }
-      }, 'waterway-label');
+      }, 'building');
 
       map.addLayer({
         "id": "ocha_mantika_borders",
