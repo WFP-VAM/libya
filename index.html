@@ -37,6 +37,10 @@
   <script>
     mapboxgl.accessToken = 'pk.eyJ1IjoicGFzcXVpZXJqYiIsImEiOiJjaml1NjRkcmsxbnB2M3Btc3lzc2UwMmk4In0.WXzslqx4xB4fWBeBRU0AGw';
 
+    if (!mapboxgl.supported()) {
+        alert('Your browser does not support this Web Map - please try with a recent version of Firefox, Chrome or Safari');
+    }
+
     var map = new mapboxgl.Map({
       container: 'map',
       style: 'mapbox://styles/pasquierjb/cjl2dra7b8re72slkbn8qefmj',
