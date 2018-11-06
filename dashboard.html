@@ -57,6 +57,12 @@
       cached_json = data;
     });
 
+    var cached_pop_json;
+    $.getJSON(`data/Population_Libya.json`, function(data) {
+      cached_pop_json = data;
+    });
+
+
     var layers = ['0-5%', '5-10%', '10-25%', '25-40%', '40-60%', '60-80%', '80-100%'];
     var colors = ['#FFEDA0', '#FED976', '#FEB24C', '#FD8D3C', '#FC4E2A', '#E31A1C', '#BD0026'];
     var thresholds = [0, 0.05, 0.10, 0.25, 0.40, 0.60, 0.80, 1]
@@ -139,11 +145,14 @@
       })
     }
 
-    function getfoodsecinfo(data, Mantika) {
+    function getfoodsecinfo(data, pop_data, Mantika) {
       var region = Mantika;
+      console.log(pop_data);
+      console.log(clicked);
+      console.log(pop_data[clicked]);
       if (typeof data[region] !== 'undefined') {
         var HH_status = data[region]["displacement_status"];
-        var HH_population = data[region]["Strata_HH_population"];
+        var HH_population = numberWithCommas(pop_data[clicked][region]);
         var food_insecure = (data[region]["Food_Insecure"] * 100).toFixed(0) + "%";
         var food_insecure_mar = (data[region]["Moderately_food_insecure"] * 100).toFixed(0) + "%";
         var food_insecure_sev = (data[region]["Severely_food_insecure"] * 100).toFixed(0) + "%";
@@ -155,7 +164,7 @@
         document.getElementById('features').innerHTML = '<h2><strong>' +
           region + ': ' + HH_status + '</h2></strong>' +
           '<br/>' +
-          '<p><strong>' + HH_status + ' Population: ' + HH_population + ' (households)</strong></p>' +
+          '<p><strong>' + HH_status + ' Population: ' + HH_population + ' people</strong></p>' +
           '<br/>' +
           '<p><strong>' + food_insecure + ' are Food Insecure</strong></p>' +
           '<br/>' +
@@ -178,11 +187,16 @@
       });
       if (features.length > 0) {
         var Mantika = features[0]["properties"]["ADM2_Manti"];
-        getfoodsecinfo(cached_json, Mantika);
+        getfoodsecinfo(cached_json, cached_pop_json, Mantika);
       } else {
         document.getElementById('features').innerHTML = ' <h2><strong>Hover your mouse over a Mantika to get the Food Security data</h2></strong>';
       }
     });
+
+    const numberWithCommas = (x) => {
+      return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
+    }
+
   </script>
 
 </body>
