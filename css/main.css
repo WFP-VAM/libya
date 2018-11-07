@@ -71,6 +71,12 @@ p {
   margin-right: 5px;
 }
 
+.legend-circle {
+  display: inline-block;
+  border-radius: 50%;
+  padding: 6px;
+}
+
 /* Selection */
 
 #selection {
