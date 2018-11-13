@@ -38,7 +38,7 @@
     mapboxgl.accessToken = 'pk.eyJ1IjoicGFzcXVpZXJqYiIsImEiOiJjaml1NjRkcmsxbnB2M3Btc3lzc2UwMmk4In0.WXzslqx4xB4fWBeBRU0AGw';
 
     if (!mapboxgl.supported()) {
-        alert('Your browser does not support this Web Map - please try with a recent version of Firefox, Chrome or Safari');
+      alert('Your browser does not support this Web Map - please try with a recent version of Firefox, Chrome or Safari');
     }
 
     var map = new mapboxgl.Map({
@@ -50,16 +50,17 @@
       minZoom: 4
     });
 
-    $.ajaxSetup({beforeSend: function(xhr){
-  if (xhr.overrideMimeType)
-  {
-    xhr.overrideMimeType("application/json");
-  }
-}
-});
+    $.ajaxSetup({
+      beforeSend: function(xhr) {
+        if (xhr.overrideMimeType) {
+          xhr.overrideMimeType("application/json");
+        }
+      }
+    });
 
     var clicked = "All";
     var cached_json;
+    var cached_pop_json;
     var Mantikas;
     $.getJSON(`data/MSNA_Mantikas_${clicked}.json`, function(data) {
       change_colors(data);
@@ -67,7 +68,6 @@
       Mantikas = Object.keys(cached_json);
     });
 
-    var cached_pop_json;
     $.getJSON(`data/Population_Libya.json`, function(data) {
       cached_pop_json = data;
     });
@@ -90,63 +90,92 @@
       expression.push('#D3D3D3'); // No data color
     }
 
+    var circle_text_dict = {};
+    var circle_radius_dict = {};
+
+    function change_circles(json, pop_json) {
+      var Mantikas = Object.keys(pop_json[clicked]);
+      for (var i = 0; i < Mantikas.length; i++) {
+        if (typeof json[Mantikas[i]] !== 'undefined') {
+          var food_insecure_pop = json[Mantikas[i]]["Food_Insecure"] * pop_json[clicked][Mantikas[i]];
+          var circle_radius = Math.sqrt(food_insecure_pop) / 5;
+          var circle_text = numberWithCommas(food_insecure_pop.toFixed(0));
+      }
+      else{
+        var circle_radius = 0;
+        var circle_text = "";
+      }
+        circle_text_dict[Mantikas[i]] = circle_text;
+        circle_radius_dict[Mantikas[i]] = circle_radius;
+        }
+    }
+
     map.on('load', function() {
+
+      map.addSource("ocha_mantika_geojson", {
+        "type": "vector",
+        "url": "mapbox://pasquierjb.bvqfh4a4"
+      });
 
       map.addLayer({
         "id": "ocha_mantika",
         "type": "fill",
-        "source": {
-          type: 'vector',
-          url: 'mapbox://pasquierjb.5suoc7hh'
-        },
-        "source-layer": "Mantika-169g1n",
+        "source": "ocha_mantika_geojson",
+        "source-layer": "Mantika_id",
         "paint": {
           'fill-color': '#EED322',
-          'fill-opacity': 0.75
+          'fill-opacity': 0.7
         }
       }, 'building');
 
       map.addLayer({
         "id": "ocha_mantika_borders",
         "type": "line",
-        "source": {
-          type: 'vector',
-          url: 'mapbox://pasquierjb.5suoc7hh'
-        },
-        "source-layer": "Mantika-169g1n",
+        "source": "ocha_mantika_geojson",
+        "source-layer": "Mantika_id",
         "paint": {
           "line-color": "#888",
-          "line-width": 0.5
+          "line-width": ['case', ['boolean', ['feature-state', 'hover2'], false], 1.5, 1],
+          "line-opacity": ['case', ['boolean', ['feature-state', 'hover2'], false], 1, 0.2]
         }
       }, 'waterway-label');
 
       map.setPaintProperty('ocha_mantika', 'fill-color', expression);
 
-      for (var i = 0; i < Mantikas.length; i++) {
-        var food_insecure_pop = cached_json[Mantikas[i]]["Food_Insecure"] * cached_pop_json[clicked][Mantikas[i]];
-        map.addLayer({
-          'id': 'point_'+ Mantikas[i] ,
-          'type': 'circle',
-          'source': {
-              'type': 'geojson',
-              'data': 'data/'+ Mantikas[i]+'_centroid.json'},
-          'layout': {
-              'visibility': 'none'},
-          'paint': {
-            'circle-color': '#303030',
-            'circle-radius': Math.sqrt(food_insecure_pop)/5,
-            'circle-opacity': 0.4}});
-        map.addLayer({
-          'id': 'symbol_'+ Mantikas[i] ,
-          'type': 'symbol',
-          'source': {
-              'type': 'geojson',
-              'data': 'data/'+ Mantikas[i]+'_centroid.json'},
-          'layout': {
-            'visibility': 'none',
-            'text-field' : numberWithCommas(food_insecure_pop.toFixed(0))}});
+      map.addSource("point_geojson", {
+        "type": "geojson",
+        "data": 'data/Mantikas_centroid.json'
+      });
+
+      map.addLayer({
+        'id': 'point_Mantikas',
+        'type': 'circle',
+        'source': "point_geojson",
+        'paint': {
+          'circle-color': '#303030',
+          'circle-opacity': ['case', ['boolean', ['feature-state', 'hover'], false], 0.7, 0]
         }
       });
+
+
+      map.addLayer({
+        'id': 'symbol_Mantikas',
+        'type': 'symbol',
+        'source': "point_geojson",
+        'layout': {
+          'text-allow-overlap':true,
+          'text-ignore-placement':true
+        },
+        'paint': {
+          'text-opacity': ['case', ['boolean', ['feature-state', 'hover'], false], 0.9, 0]
+        }
+      });
+
+      change_circles(cached_json, cached_pop_json);
+      map.setPaintProperty('point_Mantikas', 'circle-radius', ["get", ["to-string", ["get", "ADM2_Manti"]], ["literal", circle_radius_dict]]);
+      map.setLayoutProperty('symbol_Mantikas', 'text-field', ["get", ["to-string", ["get", "ADM2_Manti"]], ["literal", circle_text_dict]]);
+
+    });
 
     for (i = 0; i < layers.length; i++) {
       var layer = layers[i];
@@ -189,13 +218,11 @@
         cached_json = data;
         Mantikas = Object.keys(cached_json);
         for (var i = 0; i < Mantikas.length; i++) {
-          console.log(cached_json[Mantikas[i]]["Food_Insecure"])
           var food_insecure_pop = cached_json[Mantikas[i]]["Food_Insecure"] * cached_pop_json[clicked][Mantikas[i]];
-          console.log(food_insecure_pop)
-          console.log( Math.sqrt(food_insecure_pop));
-          map.setPaintProperty('point_'+ Mantikas[i], 'circle-radius', Math.sqrt(food_insecure_pop)/5);
-          map.setLayoutProperty('symbol_'+ Mantikas[i], 'text-field', numberWithCommas(food_insecure_pop.toFixed(0)));
-            };
+          change_circles(cached_json, cached_pop_json);
+          map.setPaintProperty('point_Mantikas', 'circle-radius', ["get", ["to-string", ["get", "ADM2_Manti"]], ["literal", circle_radius_dict]]);
+          map.setLayoutProperty('symbol_Mantikas', 'text-field', ["get", ["to-string", ["get", "ADM2_Manti"]], ["literal", circle_text_dict]]);
+        };
       })
     }
 
@@ -232,38 +259,34 @@
       }
     }
 
-    map.on('mousemove', function(e) {
-      var features = map.queryRenderedFeatures(e.point, {
-        layers: ["ocha_mantika"]
-      });
-
-      Mantikas = Object.keys(cached_json);
-      Mantika_filtered = Mantikas.filter(function(item) {
-          return item !== Mantika
-      })
-      for (var i = 0; i < Mantika_filtered.length; i++) {
-        map.setLayoutProperty('point_'+ Mantika_filtered[i], 'visibility', 'none');
-        map.setLayoutProperty('symbol_'+ Mantika_filtered[i], 'visibility', 'none');
-      }
-
-      if (features.length > 0) {
-        var Mantika = features[0]["properties"]["ADM2_Manti"];
-        getfoodsecinfo(cached_json, cached_pop_json, Mantika);
-        // map.setLayoutProperty('point_' + Mantika, 'visibility', 'visible');
-        if (typeof cached_json[Mantika] !== 'undefined') {
-          map.setLayoutProperty('point_'+ Mantika, 'visibility', 'visible');
-          map.setLayoutProperty('symbol_'+ Mantika, 'visibility', 'visible');
+    var hoveredMantika = null;
+    map.on("mousemove", "ocha_mantika", function(e) {
+      if (e.features.length > 0) {
+        if (hoveredMantika) {
+          getfoodsecinfo(cached_json, cached_pop_json, hoveredMantika);
+          map.setFeatureState({source: 'point_geojson', id: hoveredMantika_id}, {hover: false});
+          map.setFeatureState({source: 'ocha_mantika_geojson', sourceLayer: "Mantika_id", id: hoveredMantika_id}, {hover2: false});
         }
+        hoveredMantika_id = e.features[0]["id"];
+        hoveredMantika = e.features[0]["properties"]["ADM2_Manti"];
+        map.setFeatureState({source: 'point_geojson', id: hoveredMantika_id}, {hover: true});
+        map.setFeatureState({source: 'ocha_mantika_geojson', sourceLayer: "Mantika_id", id: hoveredMantika_id}, {hover2: true});
+      }
+    });
 
-      } else {
+    // When the mouse leaves the ocha_mantika layer
+    map.on("mouseleave", "ocha_mantika", function() {
+      if (hoveredMantika) {
+        map.setFeatureState({source: 'point_geojson', id: hoveredMantika_id}, {hover: false});
+        map.setFeatureState({source: 'ocha_mantika_geojson', sourceLayer: "Mantika_id", id: hoveredMantika_id}, {hover2: false});
         document.getElementById('features').innerHTML = ' <h2><strong>Hover your mouse over a Mantika to get the Food Security data</h2></strong>';
       }
+      hoveredMantika = null;
     });
 
     const numberWithCommas = (x) => {
       return x.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ",");
     }
-
   </script>
 
 </body>
