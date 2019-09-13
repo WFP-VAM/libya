@@ -79,10 +79,20 @@ p {
 
 /* Selection */
 
-#selection {
+#year {
   position: absolute;
   display: block;
   top: 1%;
+  width: 170px;
+  height: 60px;
+  overflow: auto;
+  background: rgba(255, 255, 255, 0.8);
+    }
+
+#selection {
+  position: absolute;
+  display: block;
+  top: 70px;
   width: 170px;
   height: 100px;
   overflow: auto;
