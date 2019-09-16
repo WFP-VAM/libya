@@ -26,19 +26,19 @@
     <strong>
       <legend>Displacement Status</legend>
     </strong>
-    <form>
-      <input type="radio" name="disp_status" value="All" autocomplete="off" checked> All population<br>
-      <input type="radio" name="disp_status" autocomplete="off" value="IDP"> IDPs<br>
-      <input type="radio" name="disp_status" autocomplete="off" value="Returnee"> Returnees<br>
-      <input type="radio" name="disp_status" autocomplete="off" value="NonDisplaced"> Non-Displaced
+    <form name="disp_status">
+      <input type="radio" name="status" value="All" autocomplete="off" checked> All population<br>
+      <input type="radio" name="status" autocomplete="off" value="IDP"> IDPs<br>
+      <input type="radio" name="status" autocomplete="off" value="Returnee"> Returnees<br>
+      <input type="radio" name="status" autocomplete="off" value="NonDisplaced"> Non-Displaced
     </form>
   </div>
 
-  <div class='map-overlay' id='year'>
+  <div class='map-overlay' id='year_form'>
     <strong>
       <legend>Year</legend>
     </strong>
-    <form>
+    <form name="year_msna">
       <input type="radio" name="year" value="2019" autocomplete="off" checked> 2019<br>
       <input type="radio" name="year" value="2018" autocomplete="off" > 2018<br>
     </form>
@@ -216,13 +216,20 @@
 
 
     window.onload = function() {
-      var radios = document.forms[0].elements["disp_status"];
-      for (var i = [0]; i < radios.length; i++)
-        radios[i].onclick = radioClicked;
+      var radios1 = document.forms["disp_status"].elements["status"];
+      var radios2 = document.forms["year_msna"].elements["year"];
+      for (var i = [0]; i < radios1.length; i++)
+        radios1[i].onclick = radioClicked;
+      for (var i = [0]; i < radios2.length; i++)
+        radios2[i].onclick = radioClicked;
     }
 
     function radioClicked() {
-      clicked = this.value;
+      if (this.name == "status") {
+        clicked = this.value;
+      } else if (this.name == "year"){
+        yearselected = this.value;
+      }
       $.getJSON(`data/MSNA_Mantikas_${clicked}_${yearselected}.json`, function(data) {
         expression = ['match', ['get', 'ADM2_Manti']];
         change_colors(data);
